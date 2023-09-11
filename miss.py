@@ -3,7 +3,7 @@ import math
 from mavsdk.offboard import PositionNedYaw
 from mavsdk import System, mission
 
-#END坐标，高度为-数，以下程序做了修改，正常数输入即可
+
 async def run():
     # 连接无人机
     drone = System()
@@ -27,7 +27,7 @@ async def run():
             pass
         else:
             print("数据无效")
-        print("输入1起飞")
+        print("输入1确认")
         i=int(input())
         print(i)
         if i==1:
@@ -41,17 +41,9 @@ async def run():
         z = position.relative_altitude_m
         print(x,y,z)
         break
-    #初始化变量，发布解锁起飞悬停命令
+    #初始化变量，发布解锁起飞高度
     x,y,z,s,time_1,yaw_1=0,0,0,-1,-1,-1
     await drone.action.set_takeoff_altitude(g)
-    print("-- Arming")
-    await drone.action.arm()
-    print("-- Taking off")
-    await drone.action.takeoff()
-    await asyncio.sleep(5)
-    await asyncio.sleep(g)
-    print("hold")
-    # 创建航线任务，并添加航点，按q执行
     mission_items = []
     while True:
 
@@ -76,7 +68,12 @@ async def run():
                 input_str = input("输入 回车继续，'q' 执行: ")
                 if input_str == 'q':
                     break
-    # 设置航线任务
+    # 解锁起飞、设置航线任务
+    print("-- Arming")
+    await drone.action.arm()
+    print("-- Taking off")
+    await drone.action.takeoff()
+    await asyncio.sleep(5) 
     mission_plan = mission.MissionPlan(mission_items)
     await drone.mission.set_return_to_launch_after_mission(True)
     await drone.mission.upload_mission(mission_plan)
