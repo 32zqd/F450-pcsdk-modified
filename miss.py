@@ -55,6 +55,11 @@ async def run():
     while (z1!=g):
             if z1 > g+1:
                 await drone.action.land()
+                async for position in drone.telemetry.position():
+                    z1 = position.relative_altitude_m
+                    z1=int(z1)
+                    print("高度异常，降落，高度为",z1,"执行高度为",g)
+                    break
             else:
                 await drone.action.set_takeoff_altitude(g)
                 await drone.action.arm()
