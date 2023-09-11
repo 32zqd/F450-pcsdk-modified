@@ -35,7 +35,7 @@ async def run():
             await drone.action.set_takeoff_altitude(g)
         else:
             print("数据无效")
-        print("输入1起飞")
+        print("输入1起飞，任意输入返回起飞输入")
         i=int(input())
         print(i)
         if i==1:
@@ -68,7 +68,7 @@ async def run():
     
     while True:
 
-        input_str = input("输入X轴,Y轴,高度,速度，悬停时间，航向角\n(注意：高度为相对高度，输入负数意味着低于起飞高度,且需要两个航线任务)   空格隔开 ")
+        input_str = input("输入X轴,Y轴,高度,速度，悬停时间，航向角\n(注意：高度为相对高度，共6个参数，注意参数描述，高度输入负数意味着低于起飞高度,且需要两个航点任务)   空格隔开\n ")
         try:
             x,y,z,s,time_1, yaw_1 = map(float, input_str.split( ))
         except ValueError:
