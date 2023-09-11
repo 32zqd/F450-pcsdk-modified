@@ -18,7 +18,7 @@ async def move_right(drone):
             pass
         else:
             print("数据无效")
-        print("输入1起飞")
+        print("输入1起飞，任意输入返回起飞输入")
         i=int(input())
         print(i)
         if i==1:
@@ -60,7 +60,7 @@ async def move_right(drone):
 
     while True:
         
-        input_str = input("输入控制模式下X轴,Y轴,z轴对应,航向角/油门0-1行程(注意：高度为相对高度，输入负数意味着低于起飞高度)   空格隔开 ")
+        input_str = input("输入控制模式下X轴,Y轴,z轴对应,航向角/油门0-1行程(注意：共4个参数，高度为相对高度，输入负数意味着低于起飞高度，行程为百分比，0-1为百分之0-百分之100)   空格隔开\n ")
         try:
             var1, var2, var3, var4 = map(float, input_str.split())
             if var3>0:
