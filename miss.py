@@ -53,13 +53,16 @@ async def run():
     print(g)
     z1 = 0
     while (z1!=g):
-        await drone.action.set_takeoff_altitude(g)
-        await drone.action.arm()
-        await drone.action.takeoff()
-        async for position in drone.telemetry.position():
-            z1 = position.relative_altitude_m
-            z1=int(z1)
-            break
+            if z1 > g+1:
+                await drone.action.land()
+            else:
+                await drone.action.set_takeoff_altitude(g)
+                await drone.action.arm()
+                await drone.action.takeoff()
+                async for position in drone.telemetry.position():
+                    z1 = position.relative_altitude_m
+                    z1=int(z1)
+                    break
 #确保起飞高度
 
     print(g,z1)
