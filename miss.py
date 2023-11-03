@@ -58,7 +58,7 @@ async def run():
                 print(x,y,z,s,time_1,yaw_1)
                 async for position in drone.telemetry.position():
                     x = position.latitude_deg + x / 111111.0
-                    y = position.longitude_deg + y / 111111.0
+                    y = position.longitude_deg + y / 111111.0 * 1.3045
                     z = position.relative_altitude_m + z
                     print(x,y,z)
                     break
