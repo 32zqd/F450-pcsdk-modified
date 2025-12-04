@@ -16,7 +16,7 @@ async def run():
     # 连接无人机
     drone = System()
     drone = System(mavsdk_server_address='localhost', port=50051)  #仿真需要注释，真机解开注释
-    await drone.connect(system_address="udp://:14445")
+    await drone.connect(system_address="udp://:14540")
 
     # 等待连接
     print("等待连接...")
@@ -62,7 +62,7 @@ async def run():
     print("hold")
 
     # 创建航线任务，并添加航点，按q执行
-    mission_items = []
+    # mission_items = []
     input_str_list = ['0,0,3,0.5,1,0',
                       '0,4,3,0.5,1,0',
                       ]

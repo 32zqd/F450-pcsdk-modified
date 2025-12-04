@@ -3,12 +3,12 @@
 import asyncio
 from mavsdk import System
 from mavsdk.offboard import PositionNedYaw
-from mavsdk.info import InfoError
+from mavsdk.action import ActionError
 
 async def run():
     drone = System()
     drone = System(mavsdk_server_address='localhost', port=50051) #仿真需要注释，真机解开注释
-    await drone.connect(system_address="udp://:14445")
+    await drone.connect(system_address="udp://:14540")
     status_text_task = asyncio.ensure_future(print_status_text(drone))
     print("等待连接...")
     async for state in drone.core.connection_state():
@@ -16,17 +16,21 @@ async def run():
             print(f"-- 连接成功!")
             break
     print("GPS定点估算...")
-    # async for health in drone.telemetry.health():
-    #     if health.is_global_position_ok and health.is_home_position_ok:
-    #         print("-- GPS位置就绪")
-            # break
-        
+    async for health in drone.telemetry.health():
+        if health.is_global_position_ok and health.is_home_position_ok:
+            print("-- GPS位置就绪")
+            break
     #获取坐标
     # global_origin = await drone.telemetry.get_gps_global_origin()
     # g = global_origin.altitude_m
     # x = global_origin.latitude_deg
     # y = global_origin.longitude_deg
     # print(g,x,y)
+
+    async for pos in drone.telemetry.position():
+        print("Home (lat, lon, abs_alt):", pos.latitude_deg,
+          pos.longitude_deg, pos.absolute_altitude_m)
+        break
     #获取无人机信息
     # x3 = await drone.info.get_flight_information()
     # print(x3)
@@ -34,53 +38,12 @@ async def run():
     # print(y3)
     # z3= await drone.info.get_product()
     # print(z3)
-    # 获取无人机信息（添加重试机制）
-    max_retries = 10
-    retry_delay = 1  # 每次重试间隔1秒
-    x3 = None
-    for _ in range(max_retries):
-        try:
-            x3 = await drone.info.get_flight_information()
-            break
-        except InfoError:
-            await asyncio.sleep(retry_delay)
-    if x3:
-        print(x3)
-    else:
-        print("无法获取飞行信息")
-    
-    # 获取版本信息（同理添加重试）
-    y3 = None
-    for _ in range(max_retries):
-        try:
-            y3 = await drone.info.get_version()
-            break
-        except InfoError:
-            await asyncio.sleep(retry_delay)
-    if y3:
-        print(y3)
-    else:
-        print("无法获取版本信息")
-    
-    # 获取产品信息（同理添加重试）
-    z3 = None
-    for _ in range(max_retries):
-        try:
-            z3 = await drone.info.get_product()
-            break
-        except InfoError:
-            await asyncio.sleep(retry_delay)
-    if z3:
-        print(z3)
-    else:
-        print("无法获取产品信息")
-        
     #电池电压百分比
-    async for bat in drone.telemetry.battery():
-        x4 = bat.voltage_v
-        y4 = bat.remaining_percent*100
-        print('%.2f'%x4,"V",'%.1f'%y4,"%")
-        break
+    # async for bat in drone.telemetry.battery():
+    #     x4 = bat.voltage_v
+    #     y4 = bat.remaining_percent*100
+    #     print('%.2f'%x4,"V",'%.1f'%y4,"%")
+    #     break
     #GPS状态及卫星数量
     async for a1 in drone.telemetry.gps_info(): 
         x5=a1.fix_type
@@ -88,7 +51,8 @@ async def run():
         print("gps：",x5,y5)
         break
     #解锁起飞降落等指令
-    await drone.action.set_takeoff_altitude(2)
+    # await drone.action.set_takeoff_altitude(2)
+
     print("-- Arming")
     await drone.action.arm()
     print("-- Taking off")
@@ -112,8 +76,6 @@ async def run():
         g1 = position.absolute_altitude_m
         print("GPS坐标（相对高度与GPS高）",x1,y1,z1,g1)
         break
-    status_text_task.cancel()  # 取消异步任务
-    await asyncio.gather(status_text_task, return_exceptions=True)  # 等待任务结束
     # async for rawgps in drone.telemetry.raw_gps():
     #     x2 = rawgps.timestamp_us
     #     y2 =rawgps.heading_uncertainty_deg
@@ -124,22 +86,21 @@ async def run():
     # 获取更新GPS时间，经纬度等
 #获取当前位置航向信息
 async def send_position_data(drone):
-    # 删除重复的 drone = System()
+    drone = System()
     async for position_data in drone.telemetry.position_velocity_ned():
+        # 获取当前位置和航向信息
         current_position = position_data.position
         async for heading in drone.telemetry.attitude_euler():
             print(f"Heading: {heading.yaw_deg}")
-            # 注意：这里需要在循环内创建 PositionNedYaw，否则 heading 未定义
-            position_ned_yaw = PositionNedYaw(
-                north_m=current_position.north_m,
-                east_m=current_position.east_m,
-                down_m=current_position.down_m,
-                yaw_deg=heading.yaw_deg
+        # 创建 PositionNedYaw 对象
+        position_ned_yaw = PositionNedYaw(
+            north_m=current_position.north_m,
+            east_m=current_position.east_m,
+            down_m=current_position.down_m,
+            yaw_deg=heading.yaw_deg
             )
-            # 注意：set_rate_position_velocity_ned 是设置更新频率，不是发布位置
-            await drone.telemetry.set_rate_position_velocity_ned(10)  # 设置10Hz更新
-        break  # 避免无限循环
-
+        # 发布位置信息
+        await drone.telemetry.set_rate_position_velocity_ned(position_ned_yaw)
 async def print_status_text(drone):
     # drone = System()
     try:

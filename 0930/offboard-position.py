@@ -96,7 +96,7 @@ async def move_right(drone):
 
 async def run():
     drone = System()
-    #drone = System(mavsdk_server_address='localhost', port=50051)  #仿真需要注释，真机解开注释
+    drone = System(mavsdk_server_address='localhost', port=50051)  #仿真需要注释，真机解开注释
     await drone.connect(system_address="udp://:14540")
 
     async for health in drone.telemetry.health():
